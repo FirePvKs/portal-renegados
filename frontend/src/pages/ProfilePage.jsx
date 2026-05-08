@@ -5,6 +5,7 @@ import { cldPresets } from '../lib/cloudinary.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import RoleBadge from '../components/RoleBadge.jsx';
 import ImageUpload from '../components/ImageUpload.jsx';
+import Modal from '../components/Modal.jsx';
 
 export default function ProfilePage() {
   const { username } = useParams();
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
 
   const isOwnProfile = me?.username === username;
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const loadProfile = async () => {
     try {
@@ -72,13 +74,13 @@ export default function ProfilePage() {
           )}
 
           {isOwnProfile && (
-            <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-3 right-3 z-10">
               <ImageUpload
                 kind="banner"
                 onUploaded={(r) => handleImageUploaded('banner', r)}
                 className="btn-secondary text-xs px-3 py-1.5 inline-block"
               >
-                Cambiar banner
+                {profile.banner_url ? 'Cambiar banner' : '+ Subir banner'}
               </ImageUpload>
             </div>
           )}
@@ -125,6 +127,14 @@ export default function ProfilePage() {
                   day: 'numeric', month: 'long', year: 'numeric'
                 })}
               </p>
+              {isOwnProfile && (
+                <button
+                  onClick={() => setShowPasswordModal(true)}
+                  className="mt-3 text-xs font-mono uppercase tracking-widest text-bone-100/50 hover:text-bone-100 border border-bone-100/20 hover:border-bone-100/50 px-3 py-1.5 rounded transition-colors"
+                >
+                  Cambiar contraseña
+                </button>
+              )}
             </div>
           </div>
 
@@ -185,12 +195,15 @@ export default function ProfilePage() {
           </div>
         )}
       </Section>
+
+      {showPasswordModal && (
+        <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
+      )}
     </div>
   );
 }
 
-function Stat({ label, value }) {
-  return (
+function Stat({ label, value }) {  return (
     <div className="bg-ink-700/50 border border-bone-100/10 rounded-lg px-4 py-3 text-center">
       <div className="font-display text-2xl text-bone-100">{value}</div>
       <div className="text-[10px] uppercase tracking-widest text-bone-100/50 font-mono mt-1">{label}</div>
@@ -207,5 +220,113 @@ function Section({ title, children, empty }) {
       </h2>
       {children || <p className="text-bone-100/40 italic text-sm">{empty}</p>}
     </div>
+  );
+}
+
+function ChangePasswordModal({ onClose }) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword.length < 6) {
+      setError('La nueva contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas nuevas no coinciden.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await api.changeMyPassword(currentPassword, newPassword);
+      setSuccess(true);
+      setTimeout(onClose, 1500);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal onClose={onClose} maxWidth="max-w-md">
+      <>
+        <h2 className="font-display text-2xl tracking-wider text-bone-100 mb-6">
+          Cambiar contraseña
+        </h2>
+
+        {success ? (
+          <p className="text-green-400 font-mono text-sm text-center py-4">
+            ✓ Contraseña actualizada correctamente
+          </p>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-bone-100/70 mb-2 font-mono">
+                Contraseña actual
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                className="shinobi-input"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-bone-100/70 mb-2 font-mono">
+                Nueva contraseña
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                minLength={6}
+                className="shinobi-input"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-bone-100/70 mb-2 font-mono">
+                Confirmar nueva contraseña
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="shinobi-input"
+                placeholder="Repetí la nueva contraseña"
+              />
+            </div>
+
+            {error && (
+              <p className="text-blood text-sm font-mono">{error}</p>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={onClose} className="btn-secondary flex-1">
+                Cancelar
+              </button>
+              <button type="submit" disabled={saving} className="btn-primary flex-1">
+                {saving ? 'Guardando...' : 'Cambiar contraseña'}
+              </button>
+            </div>
+          </form>
+        )}
+      </>
+    </Modal>
   );
 }

@@ -1,3 +1,4 @@
+import Modal from '../Modal.jsx';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { cldPresets } from '../../lib/cloudinary.js';
@@ -187,14 +188,8 @@ function CreateUserModal({ onClose, onCreated }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-ink-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-6"
-      onClick={onClose}
-    >
-      <div
-        className="shinobi-card-dark w-full max-w-md fade-in-up"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal onClose={onClose} maxWidth="max-w-md">
+      <>
         <h2 className="font-display text-2xl tracking-wider text-bone-100 mb-6">
           Registrar Nuevo Shinobi
         </h2>
@@ -259,7 +254,7 @@ function CreateUserModal({ onClose, onCreated }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </>
+    </Modal>
   );
 }

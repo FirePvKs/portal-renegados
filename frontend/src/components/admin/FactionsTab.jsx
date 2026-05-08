@@ -1,3 +1,4 @@
+import Modal from '../Modal.jsx';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { cldPresets } from '../../lib/cloudinary.js';
@@ -156,14 +157,8 @@ function FactionEditor({ faction, onClose, onSaved }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-ink-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="shinobi-card-dark w-full max-w-lg my-8 fade-in-up"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal onClose={onClose} maxWidth="max-w-lg">
+      <>
         <h2 className="font-display text-2xl tracking-wider text-bone-100 mb-6">
           {isNew ? 'Nueva Facción' : 'Editar Facción'}
         </h2>
@@ -232,7 +227,6 @@ function FactionEditor({ faction, onClose, onSaved }) {
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="#a02828"
-                pattern="^#[0-9a-fA-F]{6}$"
                 className="shinobi-input flex-1 font-mono uppercase"
               />
             </div>
@@ -266,7 +260,7 @@ function FactionEditor({ faction, onClose, onSaved }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </>
+    </Modal>
   );
 }

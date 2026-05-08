@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { cldPresets } from '../lib/cloudinary.js';
+import Modal from '../components/Modal.jsx';
 
 export default function LibroBingoPage() {
   const [players, setPlayers] = useState([]);
@@ -99,6 +100,14 @@ export default function LibroBingoPage() {
                   {p.nombre.charAt(0).toUpperCase()}
                 </div>
               )}
+              {p.valoracion != null && (
+                <div
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-bold text-white shadow-lg"
+                  style={{ background: `hsl(${(p.valoracion - 1) * 12}, 70%, 45%)` }}
+                >
+                  {p.valoracion}
+                </div>
+              )}
             </div>
             <div className="p-3">
               <h3 className="font-display text-sm text-bone-100 truncate">{p.nombre}</h3>
@@ -143,30 +152,22 @@ function PlayerDetailModal({ id, onClose }) {
   }, [id]);
 
   return (
-    <div
-      className="fixed inset-0 bg-ink-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="shinobi-card-dark w-full max-w-2xl my-8 fade-in-up p-0 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal onClose={onClose} maxWidth="max-w-2xl">
+      <>
         {loading && (
-          <div className="p-12 text-center text-bone-100/50 font-mono">Cargando...</div>
+          <div className="py-12 text-center text-bone-100/50 font-mono">Cargando...</div>
         )}
 
         {error && (
-          <div className="p-6">
-            <div className="bg-blood/15 border border-blood/40 text-blood rounded-md px-4 py-3">
-              {error}
-            </div>
+          <div className="bg-blood/15 border border-blood/40 text-blood rounded-md px-4 py-3">
+            {error}
           </div>
         )}
 
         {data && (
           <>
             <div
-              className="relative aspect-[3/1] bg-ink-700"
+              className="relative -mx-6 -mt-6 aspect-[3/1] bg-ink-700 mb-6 rounded-t-xl overflow-hidden"
               style={data.player.faction_color ? {
                 background: `linear-gradient(135deg, ${data.player.faction_color}40, transparent)`
               } : undefined}
@@ -190,68 +191,104 @@ function PlayerDetailModal({ id, onClose }) {
               </button>
             </div>
 
-            <div className="p-6">
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div>
-                  <h2 className="font-display text-3xl tracking-wider text-bone-100 mb-1">
-                    {data.player.nombre}
-                  </h2>
-                  {data.player.faction_nombre && (
-                    <p className="text-xs uppercase tracking-wider font-mono"
-                       style={{ color: data.player.faction_color || 'rgba(224,226,201,0.7)' }}>
-                      {data.player.faction_nombre}
-                    </p>
-                  )}
-                </div>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="font-display text-3xl tracking-wider text-bone-100 mb-1">
+                  {data.player.nombre}
+                </h2>
+                {data.player.faction_nombre && (
+                  <p className="text-xs uppercase tracking-wider font-mono"
+                     style={{ color: data.player.faction_color || 'rgba(224,226,201,0.7)' }}>
+                    {data.player.faction_nombre}
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <Stat label="Último nivel" value={data.player.ultimo_nivel ?? '—'} />
-                <Stat label="Último prestigio" value={data.player.ultimo_prestigio ?? '—'} />
-              </div>
-
-              {data.jutsus.length > 0 && (
-                <div className="mb-5">
-                  <h3 className="font-display text-sm tracking-widest text-bone-100/70 uppercase mb-2">
-                    Jutsus conocidos ({data.jutsus.length})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {data.jutsus.map(j => (
-                      <div key={j.id} className="bg-ink-700/50 border border-bone-100/10 rounded-md px-3 py-2 flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-sm text-bone-100 truncate">{j.nombre}</p>
-                          {j.tipo && (
-                            <p className="text-[10px] uppercase tracking-wider text-bone-100/40 font-mono">
-                              {j.tipo}
-                            </p>
-                          )}
-                        </div>
-                        {j.rango && (
-                          <span className="text-[10px] font-mono uppercase tracking-widest bg-bone-100/10 px-2 py-0.5 rounded text-bone-100/80 flex-shrink-0">
-                            {j.rango}
-                          </span>
-                        )}
-                      </div>
-                    ))}
+              {data.player.valoracion != null && (
+                <div className="flex-shrink-0 text-center">
+                  <div
+                    className="w-16 h-16 rounded-full flex items-center justify-center font-display text-2xl font-bold text-white"
+                    style={{ background: `hsl(${(data.player.valoracion - 1) * 12}, 70%, 45%)` }}
+                  >
+                    {data.player.valoracion}
                   </div>
-                </div>
-              )}
-
-              {data.player.notas && (
-                <div className="border-t border-bone-100/10 pt-4">
-                  <h3 className="font-display text-sm tracking-widest text-bone-100/70 uppercase mb-2">
-                    Notas
-                  </h3>
-                  <p className="text-sm text-bone-100/80 whitespace-pre-wrap">
-                    {data.player.notas}
+                  <p className="text-[10px] uppercase tracking-widest text-bone-100/40 font-mono mt-1">
+                    valoración
                   </p>
                 </div>
               )}
             </div>
+
+            {data.player.valoracion != null && (
+              <div className="bg-ink-700/40 border border-bone-100/10 rounded-xl px-4 py-3 mb-5">
+                <p className="text-[10px] uppercase tracking-widest text-bone-100/40 font-mono mb-2">
+                  Valoración del clan
+                </p>
+                <div className="flex gap-1.5">
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                    <div
+                      key={n}
+                      className="flex-1 h-7 rounded font-mono text-xs font-bold flex items-center justify-center"
+                      style={{
+                        background: n <= data.player.valoracion
+                          ? `hsl(${(data.player.valoracion - 1) * 12}, 70%, 50%)`
+                          : 'rgba(224,226,201,0.06)',
+                        color: n <= data.player.valoracion ? '#fff' : 'rgba(224,226,201,0.2)'
+                      }}
+                    >
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <Stat label="Último nivel" value={data.player.ultimo_nivel ?? '—'} />
+              <Stat label="Último prestigio" value={data.player.ultimo_prestigio ?? '—'} />
+            </div>
+
+            {data.jutsus.length > 0 && (
+              <div className="mb-5">
+                <h3 className="font-display text-sm tracking-widest text-bone-100/70 uppercase mb-2">
+                  Jutsus conocidos ({data.jutsus.length})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {data.jutsus.map(j => (
+                    <div key={j.id} className="bg-ink-700/50 border border-bone-100/10 rounded-md px-3 py-2 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm text-bone-100 truncate">{j.nombre}</p>
+                        {j.tipo && (
+                          <p className="text-[10px] uppercase tracking-wider text-bone-100/40 font-mono">
+                            {j.tipo}
+                          </p>
+                        )}
+                      </div>
+                      {j.rango && (
+                        <span className="text-[10px] font-mono uppercase tracking-widest bg-bone-100/10 px-2 py-0.5 rounded text-bone-100/80 flex-shrink-0">
+                          {j.rango}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {data.player.notas && (
+              <div className="border-t border-bone-100/10 pt-4">
+                <h3 className="font-display text-sm tracking-widest text-bone-100/70 uppercase mb-2">
+                  Notas
+                </h3>
+                <p className="text-sm text-bone-100/80 whitespace-pre-wrap">
+                  {data.player.notas}
+                </p>
+              </div>
+            )}
           </>
         )}
-      </div>
-    </div>
+      </>
+    </Modal>
   );
 }
 

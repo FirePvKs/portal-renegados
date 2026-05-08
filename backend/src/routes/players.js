@@ -178,7 +178,7 @@ router.patch(
       const {
         nombre, imagen_url, imagen_public_id,
         ultimo_nivel, ultimo_prestigio, faction_id,
-        notas, jutsu_ids
+        notas, jutsu_ids, valoracion
       } = req.body;
 
       await client.query('BEGIN');
@@ -213,6 +213,7 @@ router.patch(
       add('ultimo_prestigio', ultimo_prestigio);
       add('faction_id', faction_id);
       add('notas', notas);
+      add('valoracion', valoracion);
 
       let player;
       if (fields.length > 0) {

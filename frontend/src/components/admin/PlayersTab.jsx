@@ -1,3 +1,4 @@
+import Modal from '../Modal.jsx';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { cldPresets } from '../../lib/cloudinary.js';
@@ -114,6 +115,14 @@ export default function PlayersTab() {
                 <div className="flex gap-3 text-[11px] text-bone-100/50 font-mono">
                   {p.ultimo_nivel != null && <span>Nv. {p.ultimo_nivel}</span>}
                   {p.ultimo_prestigio != null && <span>P. {p.ultimo_prestigio}</span>}
+                  {p.valoracion != null && (
+                    <span
+                      className="font-bold px-1.5 py-0.5 rounded text-white"
+                      style={{ background: `hsl(${(p.valoracion - 1) * 12}, 70%, 45%)` }}
+                    >
+                      {p.valoracion}/10
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -155,6 +164,7 @@ function PlayerEditor({ player, factions, jutsus, onClose, onSaved }) {
   const [ultimoPrestigio, setUltimoPrestigio] = useState(player?.ultimo_prestigio ?? '');
   const [factionId, setFactionId] = useState(player?.faction_id || '');
   const [notas, setNotas] = useState(player?.notas || '');
+  const [valoracion, setValoracion] = useState(player?.valoracion ?? null);
   const [jutsuIds, setJutsuIds] = useState([]);
   const [jutsuSearch, setJutsuSearch] = useState('');
 
@@ -191,7 +201,8 @@ function PlayerEditor({ player, factions, jutsus, onClose, onSaved }) {
       ultimo_prestigio: ultimoPrestigio === '' ? null : parseInt(ultimoPrestigio, 10),
       faction_id: factionId || null,
       notas: notas || null,
-      jutsu_ids: jutsuIds
+      jutsu_ids: jutsuIds,
+      valoracion: valoracion ?? null
     };
 
     try {
@@ -206,14 +217,8 @@ function PlayerEditor({ player, factions, jutsus, onClose, onSaved }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-ink-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="shinobi-card-dark w-full max-w-2xl my-8 fade-in-up"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal onClose={onClose} maxWidth="max-w-2xl">
+      <>
         <h2 className="font-display text-2xl tracking-wider text-bone-100 mb-6">
           {isNew ? 'Registrar Jugador' : 'Editar Jugador'}
         </h2>
@@ -366,6 +371,42 @@ function PlayerEditor({ player, factions, jutsus, onClose, onSaved }) {
 
           <div>
             <label className="block text-xs uppercase tracking-widest text-bone-100/70 mb-2 font-mono">
+              Valoración del clan (1-10)
+            </label>
+            <div className="flex gap-1.5">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setValoracion(valoracion === n ? null : n)}
+                  className="flex-1 h-9 rounded font-mono text-sm font-bold transition-all duration-100"
+                  style={{
+                    background: n <= (valoracion ?? 0)
+                      ? `hsl(${((valoracion ?? 1) - 1) * 12}, 70%, 50%)`
+                      : 'rgba(224,226,201,0.08)',
+                    color: n <= (valoracion ?? 0) ? '#fff' : 'rgba(224,226,201,0.3)',
+                    border: n === valoracion
+                      ? '1px solid rgba(224,226,201,0.5)'
+                      : '1px solid transparent'
+                  }}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            {valoracion && (
+              <button
+                type="button"
+                onClick={() => setValoracion(null)}
+                className="text-xs text-bone-100/40 hover:text-bone-100/70 font-mono mt-2"
+              >
+                Quitar valoración
+              </button>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-bone-100/70 mb-2 font-mono">
               Notas (opcional)
             </label>
             <textarea
@@ -392,7 +433,7 @@ function PlayerEditor({ player, factions, jutsus, onClose, onSaved }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </>
+    </Modal>
   );
 }

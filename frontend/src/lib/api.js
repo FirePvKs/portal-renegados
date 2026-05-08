@@ -103,6 +103,11 @@ class ApiClient {
   getPlayer(id) { return this.request(`/api/players/${id}`); }
   createPlayer(data) { return this.request('/api/players', { method: 'POST', body: data }); }
   updatePlayer(id, data) { return this.request(`/api/players/${id}`, { method: 'PATCH', body: data }); }
+
+  // RATINGS
+  getPlayerRating(id) { return this.request(`/api/players/${id}/rating`); }
+  ratePlayer(id, rating) { return this.request(`/api/players/${id}/rating`, { method: 'POST', body: { rating } }); }
+  deletePlayerRating(id) { return this.request(`/api/players/${id}/rating`, { method: 'DELETE' }); }
   deletePlayer(id) { return this.request(`/api/players/${id}`, { method: 'DELETE' }); }
 
   // JUTSUS

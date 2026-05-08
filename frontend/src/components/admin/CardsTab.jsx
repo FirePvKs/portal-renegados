@@ -1,3 +1,4 @@
+import Modal from '../Modal.jsx';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api.js';
 import { cldPresets } from '../../lib/cloudinary.js';
@@ -232,14 +233,8 @@ function CardEditor({ card, users, onClose, onSaved }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-ink-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="shinobi-card-dark w-full max-w-2xl my-8 fade-in-up"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal onClose={onClose} maxWidth="max-w-2xl">
+      <>
         <h2 className="font-display text-2xl tracking-wider text-bone-100 mb-6">
           {isNew ? 'Nueva Tarjeta' : 'Editar Tarjeta'}
         </h2>
@@ -437,7 +432,7 @@ function CardEditor({ card, users, onClose, onSaved }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </>
+    </Modal>
   );
 }

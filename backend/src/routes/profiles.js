@@ -35,7 +35,7 @@ router.get('/:username', requireAuth, async (req, res) => {
     }
 
     const [jutsus, items] = await Promise.all([
-      queryMany('SELECT * FROM jutsus WHERE user_id = $1 ORDER BY created_at DESC', [profile.id]),
+      queryMany('SELECT * FROM jutsus_catalog ORDER BY nombre ASC'),
       queryMany('SELECT * FROM items_venta WHERE user_id = $1 ORDER BY created_at DESC', [profile.id])
     ]);
 
