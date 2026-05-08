@@ -15,13 +15,18 @@ const app = express();
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'https://portal-renegados.vercel.app'
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
-    else cb(new Error('CORS not allowed'));
+    // Permitir requests sin origin (Postman, server-to-server)
+    if (!origin) return cb(null, true);
+    // Permitir cualquier subdominio de vercel.app
+    if (origin.endsWith('.vercel.app')) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('CORS not allowed'));
   },
   credentials: true
 }));
