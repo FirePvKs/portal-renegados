@@ -2,14 +2,26 @@
   "name": "renegados",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Plataforma Shinobi - frontend + backend",
   "scripts": {
-    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "install:all": "npm install && npm install --prefix frontend",
     "dev": "concurrently --names \"BACK,FRONT\" --prefix-colors \"yellow.bold,cyan.bold\" --kill-others-on-fail \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "backend": "npm run dev --prefix backend",
     "frontend": "npm run dev --prefix frontend",
-    "seed": "npm run seed --prefix backend",
-    "build": "npm run build --prefix frontend"
+    "seed": "node backend/scripts/seed-lider.js",
+    "build": "npm run build --prefix frontend",
+    "vercel-build": "npm run build --prefix frontend"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^2.5.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"
