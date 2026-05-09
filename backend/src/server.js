@@ -11,6 +11,7 @@ import cardsRoutes from './routes/cards.js';
 import playersRoutes from './routes/players.js';
 import jutsusRoutes from './routes/jutsus.js';
 import factionsRoutes from './routes/factions.js';
+import mapRoutes from './routes/map.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api/cards', cardsRoutes);
 app.use('/api/players', playersRoutes);
 app.use('/api/jutsus', jutsusRoutes);
 app.use('/api/factions', factionsRoutes);
+app.use('/api/map', mapRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });

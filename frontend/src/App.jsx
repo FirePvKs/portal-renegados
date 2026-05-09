@@ -10,6 +10,7 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import CardPage from './pages/CardPage.jsx';
 import LibroBingoPage from './pages/LibroBingoPage.jsx';
+import MapPage from './pages/MapPage.jsx';
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -45,6 +46,7 @@ export default function App() {
           } />
           <Route path="/cards/:id" element={<CardPage />} />
           <Route path="/libro-bingo" element={<LibroBingoPage />} />
+          <Route path="/mapa" element={<MapPage />} />
           <Route path="/admin" element={
             <ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>
           } />
