@@ -84,6 +84,8 @@ class ApiClient {
 
   // CARDS
   listCards() { return this.request('/api/cards'); }
+  listPublicCards() { return this.request('/api/cards/public'); }
+  getPublicCard(id) { return this.request(`/api/cards/public/${id}`); }
   getCard(id) { return this.request(`/api/cards/${id}`); }
   createCard(data) { return this.request('/api/cards', { method: 'POST', body: data }); }
   updateCard(id, data) { return this.request(`/api/cards/${id}`, { method: 'PATCH', body: data }); }

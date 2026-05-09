@@ -1,7 +1,7 @@
 import express from 'express';
 import { query, queryOne, queryMany } from '../lib/db.js';
 import cloudinary from '../lib/cloudinary.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import { requirePermission, PERMISSIONS } from '../lib/permissions.js';
 
 const router = express.Router();
@@ -12,7 +12,7 @@ const VALID_RANGOS = ['E', 'D', 'C', 'B', 'A', 'S', 'SS'];
  * GET /api/jutsus
  * Cualquier autenticado puede ver el catálogo
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const jutsus = await queryMany(
       `SELECT * FROM jutsus_catalog ORDER BY nombre ASC`

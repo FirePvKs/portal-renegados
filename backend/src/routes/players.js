@@ -1,7 +1,7 @@
 import express from 'express';
 import { query, queryOne, queryMany, pool } from '../lib/db.js';
 import cloudinary from '../lib/cloudinary.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import { requirePermission, PERMISSIONS } from '../lib/permissions.js';
 
 const router = express.Router();
@@ -11,7 +11,7 @@ const router = express.Router();
  * Cualquier autenticado puede ver la lista (libro bingo)
  * Query params opcionales: ?faction=uuid&search=texto
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const { faction, search } = req.query;
 

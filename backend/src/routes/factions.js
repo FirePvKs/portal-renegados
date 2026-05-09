@@ -1,12 +1,12 @@
 import express from 'express';
 import { query, queryOne, queryMany } from '../lib/db.js';
 import cloudinary from '../lib/cloudinary.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import { requirePermission, PERMISSIONS } from '../lib/permissions.js';
 
 const router = express.Router();
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const factions = await queryMany(
       `SELECT * FROM factions ORDER BY nombre ASC`

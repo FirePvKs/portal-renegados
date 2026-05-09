@@ -1,22 +1,39 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api.js';
 import { cldPresets } from '../lib/cloudinary.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function CardPage() {
   const { id } = useParams();
+  const { user, loading: authLoading } = useAuth();
   const [card, setCard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    api.getCard(id)
-      .then(d => setCard(d.card))
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (authLoading) return;
 
-  if (loading) {
+    const fetch = user
+      ? api.getCard(id)
+      : api.getPublicCard(id);
+
+    fetch
+      .then(d => setCard(d.card))
+      .catch(e => {
+        if (!user && e.message.includes('miembros')) {
+          navigate('/login');
+        } else {
+          setError(e.message);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [id, user, authLoading]);
+
+  const backTo = user ? '/home' : '/';
+
+  if (authLoading || loading) {
     return <div className="max-w-5xl mx-auto px-6 py-12 text-bone-100/60 font-mono">Cargando...</div>;
   }
 
@@ -26,15 +43,26 @@ export default function CardPage() {
         <div className="bg-blood/15 border border-blood/40 text-blood rounded-md px-4 py-3 mb-4">
           {error || 'Tarjeta no encontrada'}
         </div>
-        <Link to="/" className="btn-secondary inline-block">← Volver al inicio</Link>
+        <Link to={backTo} className="btn-secondary inline-block">← Volver al inicio</Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
+      {!user && (
+        <div className="bg-ink-700/50 border border-bone-100/10 rounded-lg px-4 py-3 mb-6 flex items-center justify-between gap-4">
+          <p className="text-sm text-bone-100/60 font-mono">
+            Estás viendo contenido público.
+          </p>
+          <Link to="/login" className="btn-primary text-xs px-4 py-1.5 whitespace-nowrap">
+            Iniciar sesión
+          </Link>
+        </div>
+      )}
+
       <Link
-        to="/"
+        to={backTo}
         className="inline-flex items-center gap-2 text-bone-100/60 hover:text-bone-100 font-mono text-sm mb-6 transition-colors"
       >
         ← Volver al inicio

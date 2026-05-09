@@ -4,6 +4,7 @@ import Header from './components/Header.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import LoginPage from './pages/LoginPage.jsx';
+import PublicPage from './pages/PublicPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
@@ -27,20 +28,23 @@ export default function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/login" element={
-            user ? <Navigate to="/" replace /> : <LoginPage />
+            user ? <Navigate to="/home" replace /> : <LoginPage />
           } />
+
+          {/* Página pública — visible sin login */}
           <Route path="/" element={
+            user ? <Navigate to="/home" replace /> : <PublicPage />
+          } />
+
+          {/* Rutas protegidas */}
+          <Route path="/home" element={
             <ProtectedRoute><HomePage /></ProtectedRoute>
           } />
           <Route path="/profile/:username" element={
             <ProtectedRoute><ProfilePage /></ProtectedRoute>
           } />
-          <Route path="/cards/:id" element={
-            <ProtectedRoute><CardPage /></ProtectedRoute>
-          } />
-          <Route path="/libro-bingo" element={
-            <ProtectedRoute><LibroBingoPage /></ProtectedRoute>
-          } />
+          <Route path="/cards/:id" element={<CardPage />} />
+          <Route path="/libro-bingo" element={<LibroBingoPage />} />
           <Route path="/admin" element={
             <ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>
           } />

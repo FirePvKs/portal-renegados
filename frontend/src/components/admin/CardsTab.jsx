@@ -125,11 +125,16 @@ export default function CardsTab() {
                 {card.subtitulo && (
                   <p className="text-xs text-bone-100/60 truncate mb-2">{card.subtitulo}</p>
                 )}
-                <div className="flex items-center gap-2 text-[10px] font-mono text-bone-100/40 uppercase">
+                <div className="flex items-center gap-2 flex-wrap text-[10px] font-mono uppercase">
+                  {card.visible_sin_login && (
+                    <span className="text-green-400/80 bg-green-400/10 px-1.5 py-0.5 rounded">
+                      Pública sin login
+                    </span>
+                  )}
                   {card.is_public ? (
-                    <span>Pública</span>
+                    <span className="text-bone-100/40">Todos los miembros</span>
                   ) : (
-                    <span>
+                    <span className="text-bone-100/40">
                       Restringida ({(card.allowed_roles?.length || 0)} roles, {(card.allowed_users?.length || 0)} usuarios)
                     </span>
                   )}
@@ -189,6 +194,7 @@ function CardEditor({ card, users, onClose, onSaved }) {
   const [isExternal, setIsExternal] = useState(card?.is_external || false);
   const [isComingSoon, setIsComingSoon] = useState(card?.is_coming_soon ?? true);
   const [isPublic, setIsPublic] = useState(card?.is_public ?? true);
+  const [visibleSinLogin, setVisibleSinLogin] = useState(card?.visible_sin_login ?? false);
   const [allowedRoles, setAllowedRoles] = useState(card?.allowed_roles || []);
   const [allowedUsers, setAllowedUsers] = useState(card?.allowed_users || []);
 
@@ -217,6 +223,7 @@ function CardEditor({ card, users, onClose, onSaved }) {
       is_external: isExternal,
       is_coming_soon: isComingSoon,
       is_public: isPublic,
+      visible_sin_login: visibleSinLogin,
       allowed_roles: isPublic ? [] : allowedRoles,
       allowed_users: isPublic ? [] : allowedUsers
     };
@@ -347,6 +354,18 @@ function CardEditor({ card, users, onClose, onSaved }) {
           <div className="border-t border-bone-100/10 pt-5">
             <label className="block text-xs uppercase tracking-widest text-bone-100/70 mb-3 font-mono">
               Permisos de acceso
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer mb-3">
+              <input
+                type="checkbox"
+                checked={visibleSinLogin}
+                onChange={(e) => setVisibleSinLogin(e.target.checked)}
+                className="accent-bone-100 w-4 h-4"
+              />
+              <span className="text-sm text-bone-100/80">
+                Visible sin iniciar sesión (página pública)
+              </span>
             </label>
 
             <label className="flex items-center gap-3 cursor-pointer mb-4">

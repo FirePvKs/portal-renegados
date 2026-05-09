@@ -43,6 +43,39 @@ export async function requireAuth(req, res, next) {
   }
 }
 
+/**
+ * Auth opcional — si hay sesión la carga, si no, continúa como visitante (req.user = null)
+ */
+export async function optionalAuth(req, res, next) {
+  try {
+    const token = req.cookies?.[COOKIE_NAME];
+    if (!token) return next();
+
+    const payload = verifyToken(token);
+    if (!payload?.sub) return next();
+
+    const tokenHash = hashToken(token);
+    const session = await queryOne(
+      'SELECT user_id, expires_at FROM sessions WHERE token_hash = $1',
+      [tokenHash]
+    );
+    if (!session || new Date(session.expires_at) < new Date()) return next();
+
+    const user = await queryOne(
+      `SELECT id, username, role, avatar_url, avatar_public_id,
+              banner_url, banner_public_id, nivel, prestigio, bio,
+              last_login_at, created_at
+       FROM users WHERE id = $1`,
+      [payload.sub]
+    );
+
+    req.user = user || null;
+    next();
+  } catch {
+    next();
+  }
+}
+
 export function requireLider(req, res, next) {
   if (req.user?.role !== 'lider') {
     return res.status(403).json({ error: 'Solo el líder puede realizar esta acción' });

@@ -8,6 +8,44 @@ const router = express.Router();
 const VALID_ROLES = ['lider', 'sub_lider', 'comandante', 'ayudante', 'miembro'];
 
 /**
+ * GET /api/cards/public
+ * Sin autenticación — solo tarjetas con visible_sin_login = true
+ */
+router.get('/public', async (req, res) => {
+  try {
+    const cards = await queryMany(
+      `SELECT id, titulo, subtitulo, imagen_url, link, is_external, is_coming_soon, orden
+       FROM dashboard_cards
+       WHERE visible_sin_login = true
+       ORDER BY orden ASC, created_at ASC`
+    );
+    res.json({ cards });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/cards/public/:id
+ * Sin autenticación — una tarjeta pública por id
+ */
+router.get('/public/:id', async (req, res) => {
+  try {
+    const card = await queryOne(
+      `SELECT id, titulo, subtitulo, imagen_url, link, is_external, is_coming_soon, visible_sin_login
+       FROM dashboard_cards
+       WHERE id = $1`,
+      [req.params.id]
+    );
+    if (!card) return res.status(404).json({ error: 'Tarjeta no encontrada' });
+    if (!card.visible_sin_login) return res.status(403).json({ error: 'Esta tarjeta es solo para miembros' });
+    res.json({ card });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /api/cards
  * Lista las tarjetas que el usuario actual puede ver
  */
@@ -160,7 +198,8 @@ router.patch('/:id', requireAuth, requireLider, async (req, res) => {
     const { id } = req.params;
     const {
       titulo, subtitulo, imagen_url, imagen_public_id, link,
-      is_external, is_coming_soon, is_public, allowed_roles, allowed_users
+      is_external, is_coming_soon, is_public, allowed_roles, allowed_users,
+      visible_sin_login
     } = req.body;
 
     await client.query('BEGIN');
@@ -201,6 +240,7 @@ router.patch('/:id', requireAuth, requireLider, async (req, res) => {
     addField('is_external', is_external);
     addField('is_coming_soon', is_coming_soon);
     addField('is_public', is_public);
+    addField('visible_sin_login', visible_sin_login);
     if (allowed_roles !== undefined) {
       fields.push(`allowed_roles = $${i++}`);
       values.push(allowed_roles?.length > 0 ? allowed_roles : null);
