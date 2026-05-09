@@ -10,14 +10,8 @@ export default function MapPage() {
   const [routeDetail, setRouteDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingRoute, setLoadingRoute] = useState(false);
-
-  // Zoom / pan state
   const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const panStart = useRef(null);
   const containerRef = useRef(null);
-  const mapRef = useRef(null);
 
   useEffect(() => {
     api.listMapRoutes()
@@ -44,12 +38,12 @@ export default function MapPage() {
     }
   };
 
-  // ── Zoom / Pan ────────────────────────────────────────────────────────────
+  // ── Solo zoom ─────────────────────────────────────────────────────────────
 
   const handleWheel = useCallback((e) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale(s => Math.min(Math.max(s * delta, 0.5), 5));
+    setScale(s => Math.min(Math.max(s * delta, 1), 5));
   }, []);
 
   useEffect(() => {
@@ -59,20 +53,7 @@ export default function MapPage() {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  const handleMouseDown = (e) => {
-    if (e.button !== 0) return;
-    setIsPanning(true);
-    panStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isPanning) return;
-    setOffset({ x: e.clientX - panStart.current.x, y: e.clientY - panStart.current.y });
-  };
-
-  const handleMouseUp = () => setIsPanning(false);
-
-  const resetView = () => { setScale(1); setOffset({ x: 0, y: 0 }); };
+  const resetView = () => setScale(1);
 
   return (
     <div className="min-h-screen flex flex-col bg-ink-900">
@@ -82,9 +63,12 @@ export default function MapPage() {
           ← Volver
         </Link>
         <h1 className="font-display text-xl tracking-wider text-bone-100">Mapa de Zonas</h1>
-        <button onClick={resetView} className="text-xs font-mono text-bone-100/50 hover:text-bone-100 border border-bone-100/20 px-3 py-1.5 rounded transition-colors">
-          Restablecer vista
-        </button>
+        {scale !== 1 && (
+          <button onClick={resetView} className="text-xs font-mono text-bone-100/50 hover:text-bone-100 border border-bone-100/20 px-3 py-1.5 rounded transition-colors">
+            Restablecer zoom
+          </button>
+        )}
+        {scale === 1 && <div className="w-28" />}
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -116,43 +100,38 @@ export default function MapPage() {
         </div>
 
         {/* ── Mapa ── */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-ink-950">
           <div
             ref={containerRef}
-            className="w-full h-full overflow-hidden"
-            style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            className="relative w-full h-full flex items-center justify-center overflow-hidden"
           >
             <div
-              ref={mapRef}
               style={{
-                transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+                transform: `scale(${scale})`,
                 transformOrigin: 'center center',
-                transition: isPanning ? 'none' : 'transform 0.1s',
+                transition: 'transform 0.15s ease',
                 position: 'relative',
-                width: '100%',
-                height: '100%',
+                display: 'inline-block',
+                maxWidth: '100%',
+                maxHeight: '100%',
               }}
             >
               {/* Imagen del mapa */}
               <img
                 src="/mapa.png"
                 alt="Mapa"
-                className="w-full h-full object-contain select-none pointer-events-none"
+                style={{ display: 'block', maxWidth: '100%', maxHeight: 'calc(100vh - 120px)', objectFit: 'contain' }}
                 draggable={false}
+                className="select-none"
               />
 
-              {/* SVG overlay para línea y puntos */}
+              {/* SVG overlay para línea */}
               {routeDetail && (
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   viewBox="0 0 100 100"
                   preserveAspectRatio="none"
                 >
-                  {/* Sombra de la línea */}
                   {routeDetail.linea?.length > 1 && (
                     <polyline
                       points={routeDetail.linea.map(p => `${p.x},${p.y}`).join(' ')}
@@ -163,7 +142,6 @@ export default function MapPage() {
                       strokeLinejoin="round"
                     />
                   )}
-                  {/* Línea de la ruta */}
                   {routeDetail.linea?.length > 1 && (
                     <polyline
                       points={routeDetail.linea.map(p => `${p.x},${p.y}`).join(' ')}
@@ -186,9 +164,9 @@ export default function MapPage() {
           </div>
 
           {/* Controles de zoom */}
-          <div className="absolute bottom-4 right-4 flex flex-col gap-1">
+          <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-10">
             <button onClick={() => setScale(s => Math.min(s * 1.2, 5))} className="w-8 h-8 bg-ink-800 border border-bone-100/20 rounded text-bone-100 font-mono text-lg flex items-center justify-center hover:bg-ink-700 transition-colors">+</button>
-            <button onClick={() => setScale(s => Math.max(s * 0.8, 0.5))} className="w-8 h-8 bg-ink-800 border border-bone-100/20 rounded text-bone-100 font-mono text-lg flex items-center justify-center hover:bg-ink-700 transition-colors">−</button>
+            <button onClick={() => setScale(s => Math.max(s * 0.8, 1))} className="w-8 h-8 bg-ink-800 border border-bone-100/20 rounded text-bone-100 font-mono text-lg flex items-center justify-center hover:bg-ink-700 transition-colors">−</button>
           </div>
 
           {/* Indicador sin ruta seleccionada */}
@@ -241,11 +219,7 @@ export default function MapPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-bone-100/90 leading-relaxed">{step.texto}</p>
                           {step.imagen_url && (
-                            <img
-                              src={step.imagen_url}
-                              alt={`Paso ${i + 1}`}
-                              className="mt-2 rounded-lg w-full object-cover max-h-32"
-                            />
+                            <img src={step.imagen_url} alt={`Paso ${i + 1}`} className="mt-2 rounded-lg w-full object-cover max-h-32" />
                           )}
                         </div>
                       </div>
@@ -287,8 +261,6 @@ export default function MapPage() {
   );
 }
 
-// ─── Componente de Punto en el mapa ──────────────────────────────────────────
-
 function MapPoint({ point, routeColor, scale }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -304,20 +276,17 @@ function MapPoint({ point, routeColor, scale }) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      {/* Anillo exterior pulsante */}
       <div
-        className="absolute inset-0 rounded-full animate-ping opacity-40"
-        style={{ background: point.color || routeColor, transform: 'scale(2)' }}
+        className="absolute rounded-full animate-ping opacity-30"
+        style={{ background: point.color || routeColor, width: 24, height: 24, top: -4, left: -4 }}
       />
-      {/* Punto */}
       <div
         className="relative w-4 h-4 rounded-full border-2 border-white shadow-lg cursor-pointer"
         style={{ background: point.color || routeColor }}
       />
-      {/* Tooltip */}
       {showTooltip && (
         <div
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-ink-900/95 border border-bone-100/20 rounded-lg p-2 min-w-32 shadow-xl z-20 pointer-events-none"
+          className="absolute bottom-6 left-1/2 bg-ink-900/95 border border-bone-100/20 rounded-lg p-2 min-w-32 shadow-xl z-20 pointer-events-none"
           style={{ transform: `translateX(-50%) scale(${1 / scale})`, transformOrigin: 'bottom center' }}
         >
           <p className="text-sm font-mono font-bold text-bone-100 whitespace-nowrap">{point.nombre}</p>
