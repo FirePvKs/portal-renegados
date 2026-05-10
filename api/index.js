@@ -10,6 +10,8 @@ import cardsRoutes from '../backend/src/routes/cards.js';
 import playersRoutes from '../backend/src/routes/players.js';
 import jutsusRoutes from '../backend/src/routes/jutsus.js';
 import factionsRoutes from '../backend/src/routes/factions.js';
+import mapRoutes from '../backend/src/routes/map.js';
+import mobsRoutes from '../backend/src/routes/mobs.js';
 
 const app = express();
 
@@ -42,6 +44,8 @@ app.use('/api/cards', cardsRoutes);
 app.use('/api/players', playersRoutes);
 app.use('/api/jutsus', jutsusRoutes);
 app.use('/api/factions', factionsRoutes);
+app.use('/api/map', mapRoutes);
+app.use('/api/mobs', mobsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });

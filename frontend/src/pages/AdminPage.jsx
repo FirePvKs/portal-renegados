@@ -7,6 +7,7 @@ import JutsusTab from '../components/admin/JutsusTab.jsx';
 import FactionsTab from '../components/admin/FactionsTab.jsx';
 import AccountTab from '../components/admin/AccountTab.jsx';
 import MapTab from '../components/admin/MapTab.jsx';
+import MobsTab from '../components/admin/MobsTab.jsx';
 
 const TABS = [
   { id: 'members',  label: 'Miembros' },
@@ -15,6 +16,7 @@ const TABS = [
   { id: 'jutsus',   label: 'Jutsus' },
   { id: 'factions', label: 'Facciones' },
   { id: 'map',      label: 'Mapa' },
+  { id: 'mobs',     label: 'Mobs' },
   { id: 'account',  label: 'Mi Cuenta' },
 ];
 
@@ -59,6 +61,7 @@ export default function AdminPage() {
         {active === 'jutsus'   && <JutsusTab />}
         {active === 'factions' && <FactionsTab />}
         {active === 'map'      && <MapTab />}
+        {active === 'mobs'     && <MobsTab />}
         {active === 'account'  && <AccountTab />}
       </div>
     </div>

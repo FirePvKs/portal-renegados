@@ -10,6 +10,8 @@ export default function MapPage() {
   const [routeDetail, setRouteDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingRoute, setLoadingRoute] = useState(false);
+  const [showMobs, setShowMobs] = useState(false);
+  const [mobs, setMobs] = useState([]);
 
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -18,8 +20,8 @@ export default function MapPage() {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    api.listMapRoutes()
-      .then(d => setRoutes(d.routes))
+    Promise.all([api.listMapRoutes(), api.listMobs()])
+      .then(([rd, md]) => { setRoutes(rd.routes); setMobs(md.mobs); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -104,6 +106,16 @@ export default function MapPage() {
             <Link to={user ? '/home' : '/'} className="text-[10px] font-mono text-bone-100/40 hover:text-bone-100 transition-colors">← Volver</Link>
           </div>
           <div className="flex-1 overflow-y-auto py-2">
+            {/* Toggle mobs */}
+            <button
+              onClick={() => setShowMobs(m => !m)}
+              className={`w-full text-left px-4 py-3 transition-colors flex items-center gap-3 border-b border-bone-100/10 mb-1
+                ${showMobs ? 'bg-bone-100/10 text-bone-100' : 'text-bone-100/60 hover:bg-bone-100/5 hover:text-bone-100'}`}
+            >
+              <span className="text-base">💀</span>
+              <span className="text-sm font-mono">Mostrar mobs</span>
+              {showMobs && <span className="ml-auto text-[10px] text-bone-100/40">{mobs.reduce((a, m) => a + (m.spawns?.length || 0), 0)} zonas</span>}
+            </button>
             {loading && <p className="text-center py-6 text-bone-100/40 font-mono text-xs">Cargando...</p>}
             {!loading && routes.length === 0 && (
               <p className="text-center py-6 text-bone-100/30 font-mono text-xs px-4">No hay rutas disponibles</p>
@@ -186,6 +198,13 @@ export default function MapPage() {
               {routeDetail?.points?.map((p, i) => (
                 <MapPoint key={i} point={p} routeColor={routeDetail.color} scale={scale} />
               ))}
+
+              {/* Puntos de mobs */}
+              {showMobs && mobs.map(mob =>
+                (mob.spawns || []).map((s, i) => (
+                  <MobSpawnPoint key={`${mob.id}-${i}`} mob={mob} spawn={s} scale={scale} />
+                ))
+              )}
             </div>
           </div>
 
@@ -267,6 +286,38 @@ function MapPoint({ point, routeColor, scale }) {
             <p className="text-xs text-bone-100/50 font-mono mt-0.5">X:{point.coord_x ?? '—'} Y:{point.coord_y ?? '—'} Z:{point.coord_z ?? '—'}</p>
           )}
           {point.imagen_url && <img src={point.imagen_url} alt={point.nombre} className="mt-1.5 rounded w-28 h-16 object-cover" />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobSpawnPoint({ mob, spawn, scale }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  return (
+    <div
+      style={{ position: 'absolute', left: `${spawn.pos_x}%`, top: `${spawn.pos_y}%`, transform: 'translate(-50%, -50%)', zIndex: 11 }}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {/* Icono de skull */}
+      <div className="w-5 h-5 rounded-full bg-blood border-2 border-white shadow-lg flex items-center justify-center cursor-pointer text-[10px]">
+        💀
+      </div>
+      {showTooltip && (
+        <div
+          className="absolute bottom-7 left-1/2 bg-ink-900/95 border border-blood/30 rounded-lg p-2 shadow-xl z-20 pointer-events-none"
+          style={{ transform: `translateX(-50%) scale(${1 / scale})`, transformOrigin: 'bottom center', minWidth: '140px' }}
+        >
+          {mob.imagen_url && (
+            <img src={mob.imagen_url} alt={mob.nombre} className="w-full h-16 object-cover rounded mb-2" />
+          )}
+          <p className="text-sm font-mono font-bold text-bone-100 whitespace-nowrap">{mob.nombre}</p>
+          <div className="flex gap-2 mt-0.5">
+            {mob.nivel != null && <span className="text-xs text-bone-100/50 font-mono">Nv. {mob.nivel}</span>}
+            {mob.xp != null && <span className="text-xs text-blood/80 font-mono">{mob.xp} XP</span>}
+          </div>
+          {spawn.notas && <p className="text-xs text-bone-100/40 font-mono mt-1">{spawn.notas}</p>}
         </div>
       )}
     </div>

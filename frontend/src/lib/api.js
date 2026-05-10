@@ -106,6 +106,13 @@ class ApiClient {
   createPlayer(data) { return this.request('/api/players', { method: 'POST', body: data }); }
   updatePlayer(id, data) { return this.request(`/api/players/${id}`, { method: 'PATCH', body: data }); }
 
+  // MOBS
+  listMobs() { return this.request('/api/mobs'); }
+  getMob(id) { return this.request(`/api/mobs/${id}`); }
+  createMob(data) { return this.request('/api/mobs', { method: 'POST', body: data }); }
+  updateMob(id, data) { return this.request(`/api/mobs/${id}`, { method: 'PATCH', body: data }); }
+  deleteMob(id) { return this.request(`/api/mobs/${id}`, { method: 'DELETE' }); }
+
   // MAP ROUTES
   listMapRoutes() { return this.request('/api/map/routes'); }
   listAllMapRoutes() { return this.request('/api/map/routes/all'); }
