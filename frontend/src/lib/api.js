@@ -106,6 +106,12 @@ class ApiClient {
   createPlayer(data) { return this.request('/api/players', { method: 'POST', body: data }); }
   updatePlayer(id, data) { return this.request(`/api/players/${id}`, { method: 'PATCH', body: data }); }
 
+  // PERMISSIONS
+  getRolePermissions() { return this.request('/api/admin/role-permissions'); }
+  setRolePermission(role, permission, granted) { return this.request('/api/admin/role-permissions', { method: 'PATCH', body: { role, permission, granted } }); }
+  getUserPermissions(id) { return this.request(`/api/admin/users/${id}/permissions`); }
+  setUserPermissions(id, permissions) { return this.request(`/api/admin/users/${id}/permissions`, { method: 'PATCH', body: { permissions } }); }
+
   // MOBS
   listMobs() { return this.request('/api/mobs'); }
   getMob(id) { return this.request(`/api/mobs/${id}`); }

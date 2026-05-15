@@ -11,6 +11,7 @@ export default function MembersTab({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [editingPerms, setEditingPerms] = useState(null);
 
   const loadUsers = async () => {
     try {
@@ -80,6 +81,14 @@ export default function MembersTab({ currentUser }) {
         />
       )}
 
+      {editingPerms && (
+        <PermissionsModal
+          user={editingPerms}
+          currentUser={currentUser}
+          onClose={() => setEditingPerms(null)}
+        />
+      )}
+
       <div className="shinobi-card-dark p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -138,6 +147,12 @@ export default function MembersTab({ currentUser }) {
                     {new Date(u.created_at).toLocaleDateString('es')}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                    <button
+                      onClick={() => setEditingPerms(u)}
+                      className="text-xs uppercase tracking-wider text-bone-100/60 hover:text-bone-100 hover:bg-bone-100/10 px-3 py-1.5 rounded transition-colors"
+                    >
+                      Permisos
+                    </button>
                     <button
                       onClick={() => handleResetPassword(u.id, u.username)}
                       className="text-xs uppercase tracking-wider text-bone-100/60 hover:text-bone-100 hover:bg-bone-100/10 px-3 py-1.5 rounded transition-colors"
@@ -254,6 +269,183 @@ function CreateUserModal({ onClose, onCreated }) {
             </button>
           </div>
         </form>
+      </>
+    </Modal>
+  );
+}
+
+// ─── Modal de permisos de usuario ────────────────────────────────────────────
+
+const PERM_LABELS = {
+  ver_tarjetas:       'Ver tarjetas',
+  ver_rutas:          'Ver rutas del mapa',
+  ascender_rango:     'Ascender/descender rango',
+  registrar_miembro:  'Registrar miembro',
+  registrar_jugador:  'Registrar jugador',
+  registrar_ruta:     'Registrar ruta',
+  eliminar_contenido: 'Eliminar contenido',
+  editar_contenido:   'Editar contenido',
+  dar_permisos:       'Dar permisos a otros',
+};
+
+function PermissionsModal({ user, currentUser, onClose }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [overrides, setOverrides] = useState({});
+
+  const isSuperAdminTarget = user.username?.toLowerCase() === 'firepentakiller';
+  const isSuperAdminActor = currentUser?.username?.toLowerCase() === 'firepentakiller';
+
+  useEffect(() => {
+    api.getUserPermissions(user.id)
+      .then(d => {
+        setData(d);
+        const ov = {};
+        for (const o of d.overrides || []) ov[o.permission] = o.granted;
+        setOverrides(ov);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [user.id]);
+
+  const getRoleDefault = (perm) => {
+    const rp = data?.rolePerms?.find(r => r.permission === perm);
+    return rp?.granted ?? false;
+  };
+
+  const getEffective = (perm) => {
+    if (perm in overrides) return overrides[perm];
+    return getRoleDefault(perm);
+  };
+
+  const handleToggle = (perm) => {
+    if (isSuperAdminTarget && !isSuperAdminActor) return;
+    const current = getEffective(perm);
+    const roleDefault = getRoleDefault(perm);
+    const newVal = !current;
+    if (newVal === roleDefault) {
+      const newOv = { ...overrides };
+      delete newOv[perm];
+      setOverrides(newOv);
+    } else {
+      setOverrides(prev => ({ ...prev, [perm]: newVal }));
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const permissions = Object.keys(PERM_LABELS).map(perm => {
+        const roleDefault = getRoleDefault(perm);
+        if (perm in overrides) {
+          return { permission: perm, granted: overrides[perm] };
+        }
+        return { permission: perm, granted: null };
+      });
+      await api.setUserPermissions(user.id, permissions);
+      onClose();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const canEdit = isSuperAdminActor || (!isSuperAdminTarget && currentUser?.id !== user.id);
+
+  return (
+    <Modal onClose={onClose} maxWidth="max-w-lg">
+      <>
+        <div className="flex items-center gap-3 mb-6">
+          <div>
+            <h2 className="font-display text-2xl tracking-wider text-bone-100">
+              Permisos — {user.username}
+            </h2>
+            <p className="text-xs text-bone-100/40 font-mono uppercase tracking-widest mt-0.5">
+              Rango: {ROLE_LABELS[user.role] || user.role}
+              {isSuperAdminTarget && ' · Super Administrador'}
+            </p>
+          </div>
+        </div>
+
+        {loading && <p className="text-bone-100/50 font-mono text-sm py-4">Cargando...</p>}
+        {error && <p className="text-blood text-sm font-mono mb-4">{error}</p>}
+
+        {data && (
+          <>
+            {isSuperAdminTarget && !isSuperAdminActor && (
+              <div className="bg-blood/10 border border-blood/30 rounded-lg px-4 py-3 mb-4">
+                <p className="text-sm text-blood font-mono">No podés modificar los permisos del super administrador.</p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {Object.entries(PERM_LABELS).map(([perm, label]) => {
+                const effective = getEffective(perm);
+                const roleDefault = getRoleDefault(perm);
+                const hasOverride = perm in overrides;
+
+                return (
+                  <div
+                    key={perm}
+                    className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                      ${effective ? 'bg-ink-700/50 border-bone-100/15' : 'bg-ink-800/30 border-bone-100/5'}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-mono ${effective ? 'text-bone-100' : 'text-bone-100/40'}`}>
+                        {label}
+                      </p>
+                      {hasOverride && (
+                        <p className="text-[10px] font-mono mt-0.5" style={{ color: overrides[perm] ? '#86efac' : '#fca5a5' }}>
+                          {overrides[perm] ? '↑ Permiso añadido' : '↓ Permiso quitado'} (override)
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOv = { ...overrides };
+                              delete newOv[perm];
+                              setOverrides(newOv);
+                            }}
+                            className="ml-2 underline opacity-70 hover:opacity-100"
+                          >
+                            Resetear
+                          </button>
+                        </p>
+                      )}
+                      {!hasOverride && (
+                        <p className="text-[10px] text-bone-100/30 font-mono mt-0.5">
+                          Default del rango {roleDefault ? '(activo)' : '(inactivo)'}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!canEdit || (isSuperAdminTarget && !isSuperAdminActor)}
+                      onClick={() => handleToggle(perm)}
+                      style={{ position: 'relative', width: 44, height: 24, borderRadius: 12, flexShrink: 0, marginLeft: 16, background: effective ? '#22c55e' : '#4b5563', cursor: canEdit ? 'pointer' : 'not-allowed', opacity: canEdit ? 1 : 0.5, transition: 'background 0.2s', border: 'none', display: 'inline-block' }}
+                    >
+                      <span style={{ position: 'absolute', top: 3, left: effective ? 23 : 3, width: 18, height: 18, borderRadius: '50%', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 0.2s', display: 'block' }} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {canEdit && !isSuperAdminTarget && (
+              <div className="flex gap-3 mt-6">
+                <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
+                <button type="button" onClick={handleSave} disabled={saving} className="btn-primary flex-1">
+                  {saving ? 'Guardando...' : 'Guardar permisos'}
+                </button>
+              </div>
+            )}
+            {(!canEdit || isSuperAdminTarget) && (
+              <button type="button" onClick={onClose} className="btn-secondary w-full mt-6">Cerrar</button>
+            )}
+          </>
+        )}
       </>
     </Modal>
   );

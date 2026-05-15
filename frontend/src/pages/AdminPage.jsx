@@ -8,16 +8,18 @@ import FactionsTab from '../components/admin/FactionsTab.jsx';
 import AccountTab from '../components/admin/AccountTab.jsx';
 import MapTab from '../components/admin/MapTab.jsx';
 import MobsTab from '../components/admin/MobsTab.jsx';
+import RolePermissionsTab from '../components/admin/RolePermissionsTab.jsx';
 
 const TABS = [
-  { id: 'members',  label: 'Miembros' },
-  { id: 'cards',    label: 'Tarjetas' },
-  { id: 'players',  label: 'Jugadores' },
-  { id: 'jutsus',   label: 'Jutsus' },
-  { id: 'factions', label: 'Facciones' },
-  { id: 'map',      label: 'Mapa' },
-  { id: 'mobs',     label: 'Mobs' },
-  { id: 'account',  label: 'Mi Cuenta' },
+  { id: 'members',     label: 'Miembros' },
+  { id: 'cards',       label: 'Tarjetas' },
+  { id: 'players',     label: 'Jugadores' },
+  { id: 'jutsus',      label: 'Jutsus' },
+  { id: 'factions',    label: 'Facciones' },
+  { id: 'map',         label: 'Mapa' },
+  { id: 'mobs',        label: 'Mobs' },
+  { id: 'permisos',    label: 'Permisos' },
+  { id: 'account',     label: 'Mi Cuenta' },
 ];
 
 export default function AdminPage() {
@@ -62,6 +64,7 @@ export default function AdminPage() {
         {active === 'factions' && <FactionsTab />}
         {active === 'map'      && <MapTab />}
         {active === 'mobs'     && <MobsTab />}
+        {active === 'permisos' && <RolePermissionsTab />}
         {active === 'account'  && <AccountTab />}
       </div>
     </div>
