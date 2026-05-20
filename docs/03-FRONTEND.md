@@ -21,7 +21,7 @@ VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
 VITE_SUPABASE_ANON_KEY=tu_anon_key_aqui
 ```
 
-⚠️ Aquí solo va la `anon_key`, NUNCA la `service_role_key`.
+Aquí solo va la `anon_key`, NUNCA la `service_role_key`.
 
 ## 3.3 Arrancar el frontend
 
@@ -77,14 +77,14 @@ Basado en tus capturas:
 
 ## Funcionalidades listas
 
-✅ Login con username + password (sin opción de registro público)
-✅ Sistema de 5 roles
-✅ Solo el líder ve y accede al panel admin
-✅ Crear, eliminar y cambiar rol de usuarios
-✅ Página personal de cada perfil con banner + avatar editables
-✅ Stats: nivel, prestigio, jutsus, items en venta
-✅ Subida de imágenes a Supabase Storage
-✅ Protección automática: no puedes eliminarte a ti mismo, no puedes quedar sin líderes
+- Login con username + password (sin opción de registro público)
+- Sistema de 5 roles
+- Solo el líder ve y accede al panel admin
+- Crear, eliminar y cambiar rol de usuarios
+- Página personal de cada perfil con banner + avatar editables
+- Stats: nivel, prestigio, jutsus, items en venta
+- Subida de imágenes a Supabase Storage
+- Protección automática: no puedes eliminarte a ti mismo, no puedes quedar sin líderes
 
 ## Próximos pasos (futuro)
 
